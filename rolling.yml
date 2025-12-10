@@ -2,16 +2,27 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: django-backend
+  labels:
+    app: django-backend
 spec:
+  # 1. Rolling Update Configuration
+  # This block is where the strategy is defined.
   replicas: 3
   strategy:
     type: RollingUpdate
     rollingUpdate:
+      # maxSurge: Defines how many Pods can be created ABOVE the desired number (3)
+      # 1 means that during the update, you can have a maximum of 4 Pods (3 old + 1 new)
       maxSurge: 1
+      
+      # maxUnavailable: Defines how many Pods can be UNAVAILABLE during the update.
+      # 1 means that at least 2 Pods (3 - 1) must remain running and serving traffic.
       maxUnavailable: 1
+      
+  # 2. Selector and Pod Template
   selector:
     matchLabels:
-      app: django-backend
+      app: django-backend # Must match the labels in the template
   template:
     metadata:
       labels:
@@ -19,18 +30,24 @@ spec:
     spec:
       containers:
       - name: django
-        image: roy35/django-backend:latest
+        # Use your desired image here (e.g., the initial 'blue' version)
+        # image: adamtravis/rollouts:blue 
+        image: adamtravis/rollouts:green 
+
         ports:
-        - containerPort: 8000
+        - containerPort: 8080
 ---
+# --- Service to expose the Deployment ---
 apiVersion: v1
 kind: Service
 metadata:
   name: django-service
 spec:
+  # The Service selects Pods based on the 'app: django-backend' label.
+  # During a rolling update, it will automatically route traffic to all available old and new Pods.
   selector:
     app: django-backend
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 8000
+      targetPort: 8080

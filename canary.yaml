@@ -187,7 +187,7 @@ metadata:
     kubernetes.io/ingress.class: external-nginx
     # nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/canary: "true"
-    nginx.ingress.kubernetes.io/canary-weight: "90"
+    nginx.ingress.kubernetes.io/canary-weight: "20"
 spec:
   ingressClassName: external-nginx
   rules:
