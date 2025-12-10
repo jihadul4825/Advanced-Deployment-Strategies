@@ -1,0 +1,63 @@
+# Blue deployment (current stable)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: django
+      env: blue
+  template:
+    metadata:
+      labels:
+        app: django
+        env: blue
+    spec:
+      containers:
+      - name: django
+        # image: roy35/django-backend:stable
+        image: adamtravis/rollouts:blue
+        ports:
+        - containerPort: 8080
+
+---
+# Green deployment (new version to test)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-green
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: django
+      env: green
+  template:
+    metadata:
+      labels:
+        app: django
+        env: green
+    spec:
+      containers:
+      - name: django
+        # image: roy35/django-backend:latest
+        image: adamtravis/rollouts:green
+        ports:
+        - containerPort: 8080
+
+---
+# Service (manually switch between env=blue or env=green)
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-service
+spec:
+  selector:
+    app: django
+    env: blue  # <-- switch to 'green' when ready
+    # env: green
+  ports:
+    - port: 80
+      targetPort: 8080
